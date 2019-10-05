@@ -16,4 +16,7 @@
 -->
 <resources>
     <color name="reticker_background_color">@android:color/system_neutral1_900</color>
+
+    <!-- Bottom margin size when fingerprint in display is active -->
+    <dimen name="keyguard_indication_margin_bottom_fingerprint_in_display">@dimen/keyguard_indication_margin_bottom</dimen>
 </resources>
