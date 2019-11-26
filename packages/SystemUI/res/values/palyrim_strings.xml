@@ -45,4 +45,7 @@
      <!-- DC Dimming -->
     <string name="quick_settings_dc_dimming_label">DC Dimming</string>
 
+     <!-- DataSwitch Tile -->
+    <string name="qs_data_switch_label">Switch data card</string>
+
 </resources>
