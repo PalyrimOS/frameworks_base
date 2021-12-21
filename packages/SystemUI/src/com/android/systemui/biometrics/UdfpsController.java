@@ -34,10 +34,13 @@ import android.content.IntentFilter;
 import android.graphics.Point;
 import android.hardware.biometrics.BiometricFingerprintConstants;
 import android.hardware.display.ColorDisplayManager;
+import android.hardware.biometrics.BiometricOverlayConstants;
 import android.hardware.display.DisplayManager;
 import android.hardware.fingerprint.FingerprintManager;
 import android.hardware.fingerprint.IUdfpsOverlayController;
 import android.hardware.fingerprint.IUdfpsOverlayControllerCallback;
+import android.hardware.fingerprint.FingerprintSensorPropertiesInternal;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.PowerManager;
 import android.os.Process;
@@ -147,6 +150,7 @@ public class UdfpsController implements DozeReceiver {
     @Nullable private Runnable mAuthControllerUpdateUdfpsLocation;
     @Nullable private final AlternateUdfpsTouchProvider mAlternateTouchProvider;
 
+    @VisibleForTesting final FingerprintSensorPropertiesInternal mSensorProps;
     // Tracks the velocity of a touch to help filter out the touches that move too fast.
     @Nullable private VelocityTracker mVelocityTracker;
     // The ID of the pointer for which ACTION_DOWN has occurred. -1 means no pointer is active.
@@ -177,6 +181,8 @@ public class UdfpsController implements DozeReceiver {
     private boolean mDisableNightMode;
     private boolean mNightModeActive;
     private int mAutoModeState;
+
+    private UdfpsAnimation mUdfpsAnimation;
 
     @VisibleForTesting
     public static final VibrationAttributes UDFPS_VIBRATION_ATTRIBUTES =
@@ -674,6 +680,7 @@ public class UdfpsController implements DozeReceiver {
         mActivityLaunchAnimator = activityLaunchAnimator;
         mAlternateTouchProvider = alternateTouchProvider.orElse(null);
         mBiometricExecutor = biometricsExecutor;
+        mSensorProps = findFirstUdfps();
 
         mOrientationListener = new BiometricDisplayListener(
                 context,
@@ -699,6 +706,11 @@ public class UdfpsController implements DozeReceiver {
         udfpsShell.setUdfpsOverlayController(mUdfpsOverlayController);
         mDisableNightMode = UdfpsUtils.hasUdfpsSupport(mContext);
         mUdfpsVendorCode = mContext.getResources().getInteger(R.integer.config_udfpsVendorCode);
+
+        if (com.android.internal.util.palyrim.PalyrimUtils.isPackageInstalled(mContext, "com.palyrim.udfps.animations")) {
+            mUdfpsAnimation = new UdfpsAnimation(mContext, mWindowManager, mSensorProps);
+        }
+
     }
 
     private void disableNightMode() {
@@ -733,6 +745,17 @@ public class UdfpsController implements DozeReceiver {
         }
     }
 
+    @Nullable
+    private FingerprintSensorPropertiesInternal findFirstUdfps() {
+        for (FingerprintSensorPropertiesInternal props :
+                mFingerprintManager.getSensorPropertiesInternal()) {
+            if (props.isAnyUdfpsType()) {
+                return props;
+            }
+        }
+        return null;
+    }
+
     @Override
     public void dozeTimeTick() {
         if (mOverlay != null) {
@@ -756,6 +779,12 @@ public class UdfpsController implements DozeReceiver {
 
         mOverlay = overlay;
         final int requestReason = overlay.getRequestReason();
+
+        if (mUdfpsAnimation != null) {
+            mUdfpsAnimation.setIsKeyguard(requestReason ==
+                    BiometricOverlayConstants.REASON_AUTH_KEYGUARD);
+        }
+
         if (requestReason == REASON_AUTH_KEYGUARD
                 && !mKeyguardUpdateMonitor.isFingerprintDetectionRunning()) {
             Log.d(TAG, "Attempting to showUdfpsOverlay when fingerprint detection"
@@ -942,6 +971,9 @@ public class UdfpsController implements DozeReceiver {
         for (Callback cb : mCallbacks) {
             cb.onFingerDown();
         }
+        if (mUdfpsAnimation != null) {
+            mUdfpsAnimation.show();
+        }
     }
 
     private void onFingerUp(long requestId, @NonNull UdfpsView view) {
@@ -964,6 +996,9 @@ public class UdfpsController implements DozeReceiver {
             for (Callback cb : mCallbacks) {
                 cb.onFingerUp();
             }
+        }
+        if (mUdfpsAnimation != null) {
+            mUdfpsAnimation.hide();
         }
         mOnFingerDown = false;
         if (view.isDisplayConfigured()) {
