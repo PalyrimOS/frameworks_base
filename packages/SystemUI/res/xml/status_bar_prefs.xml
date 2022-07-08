@@ -57,6 +57,12 @@
         android:key="cameratoggle"
         android:title="@string/quick_settings_camera_label" />
 
+    <!-- Wi-Fi standard number -->
+    <com.android.settings.custom.preference.SecureSettingSwitchPreference
+        android:key="show_wifi_standard_icon"
+        android:title="@string/show_wifi_standard_icon_title"
+        android:defaultValue="false" />
+
     <!-- nfc -->
     <!-- tty -->
     <!-- speakerphone -->

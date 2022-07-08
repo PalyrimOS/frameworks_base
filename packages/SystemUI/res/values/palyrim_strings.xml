@@ -56,4 +56,6 @@
     <string name="screenrecord_longer_timeout_switch_label">Bigger file size limit</string>
     <string name="screenrecord_longer_timeout_switch_summary">Limit recording size to 15 GB</string>
 
+    <!-- Wi-Fi Standard icon -->
+    <string name="show_wifi_standard_icon_title">Wi-Fi Standard icon</string>
 </resources>
