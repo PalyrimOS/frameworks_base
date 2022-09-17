@@ -23,6 +23,7 @@ import android.content.Context
 import android.graphics.PointF
 import android.hardware.biometrics.BiometricFingerprintConstants
 import android.hardware.biometrics.BiometricSourceType
+import android.provider.Settings
 import android.util.Log
 import androidx.annotation.VisibleForTesting
 import com.android.keyguard.KeyguardUpdateMonitor
@@ -304,11 +305,17 @@ class AuthRippleController @Inject constructor(
                 }
 
                 mView.setFingerprintSensorLocation(fingerprintSensorLocation!!, udfpsRadius)
-                showDwellRipple()
+                if (Settings.System.getInt(sysuiContext.contentResolver,
+                       Settings.System.UDFPS_ANIM, 0) == 0) {
+                    showDwellRipple()
+                }
             }
 
             override fun onFingerUp() {
+                if (Settings.System.getInt(sysuiContext.contentResolver,
+                        Settings.System.UDFPS_ANIM, 0) == 0) {
                 mView.retractDwellRipple()
+                }
             }
         }
 
