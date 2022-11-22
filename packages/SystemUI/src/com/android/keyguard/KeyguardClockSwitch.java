@@ -126,14 +126,13 @@ public class KeyguardClockSwitch extends RelativeLayout {
 
     public void onThemeChanged() {
         String font = mContext.getString(com.android.internal.R.string.config_headlineFontFamily);
-        if (font.equalsIgnoreCase("nothingdot57")) {
-        Typeface ndot57 = Typeface.create("nothingdot57", Typeface.NORMAL);
-
-        mClockView.setTypeface(ndot57);
-        mLargeClockView.setTypeface(ndot57);
-        }
+        Typeface tf = font.equals("google-sans")
+                ? mContext.getResources().getFont(R.font.clock)
+                : Typeface.create(font, Typeface.NORMAL);
+        mClockView.setTypeface(tf);
+        mLargeClockView.setTypeface(tf);
     }
-    
+
     /**
      * Returns if this view is presenting a custom clock, or the default implementation.
      */
