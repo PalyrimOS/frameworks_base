@@ -72,7 +72,8 @@ public class PixelPropsUtils {
             "com.android.chrome",
             "com.android.vending",
             "com.breel.wallpapers20",
-            "com.nhs.online.nhsonline"
+            "com.nhs.online.nhsonline",
+            "com.microsoft.android.smsorganizer"
     };
 
     private static final String[] packagesToKeep = {
